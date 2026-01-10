@@ -18,8 +18,9 @@ export function HeroSection() {
                     transition={{ delay: 2.8, duration: 1, ease: "easeOut" }}
                     className="z-10"
                 >
-                    <h1 className="text-7xl font-semibold tracking-tighter text-white md:text-8xl lg:text-9xl mb-6">
-                        Best of PlaqueBoyMax <br />
+                    <h1 className="text-5xl sm:text-7xl font-semibold tracking-tighter text-white md:text-8xl lg:text-9xl mb-6 leading-[0.9]">
+                        Best of <br className="hidden md:block" />
+                        PlaqueBoyMax <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
                             2025.
                         </span>
