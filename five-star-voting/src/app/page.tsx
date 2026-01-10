@@ -62,6 +62,10 @@ export default async function Home() {
       )}
 
       <div className="h-40 bg-gradient-to-t from-black to-transparent pointer-events-none" />
+
+      <footer className="py-8 text-center text-sm text-gray-600">
+        Made by <a href="https://aahadv.com" target="_blank" className="hover:text-primary transition-colors">Aahad Vakani</a>
+      </footer>
     </main>
   );
 }
