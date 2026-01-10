@@ -28,7 +28,15 @@ export function HeroSection() {
                         5$tar Shit. 5$tar Forever. Curated by the 5$tar community.
                     </p>
                     <div className="flex gap-4">
-                        <GlowButton size="lg" className="rounded-full px-10">Start Voting</GlowButton>
+                        <GlowButton
+                            size="lg"
+                            className="rounded-full px-10"
+                            onClick={() => {
+                                document.getElementById('voting-section')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                        >
+                            Start Voting
+                        </GlowButton>
                     </div>
                 </motion.div>
 

@@ -39,7 +39,7 @@ export default async function Home() {
           - RESULTS: Grid (read only), Sorted by votes.
        */}
 
-      <div className="container mx-auto px-6 mb-8">
+      <div id="voting-section" className="container mx-auto px-6 mb-8">
         {stage === 'COLLECTION' && (
           <SubmissionTrigger categories={categories} />
         )}
