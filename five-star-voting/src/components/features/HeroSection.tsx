@@ -19,7 +19,7 @@ export function HeroSection() {
                     className="z-10"
                 >
                     <h1 className="text-7xl font-semibold tracking-tighter text-white md:text-8xl lg:text-9xl mb-6">
-                        Best of <br />
+                        Best of PlaqueBoyMax <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
                             2025.
                         </span>
