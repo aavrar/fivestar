@@ -16,6 +16,7 @@ export function SubmissionModal({ isOpen, onClose, categories }: SubmissionModal
     const [url, setUrl] = useState("");
     const [title, setTitle] = useState("");
     const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
+    const [errorMsg, setErrorMsg] = useState("Failed to submit");
     const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>("idle");
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,6 +28,8 @@ export function SubmissionModal({ isOpen, onClose, categories }: SubmissionModal
             body: JSON.stringify({ url, title, categoryId }),
         });
 
+        const data = await res.json();
+
         if (res.ok) {
             setStatus("success");
             setTimeout(() => {
@@ -34,9 +37,11 @@ export function SubmissionModal({ isOpen, onClose, categories }: SubmissionModal
                 setStatus("idle");
                 setUrl("");
                 setTitle("");
+                setErrorMsg("Failed to submit"); // Reset default
             }, 1000);
         } else {
             setStatus("error");
+            setErrorMsg(data.error || "Failed to submit");
         }
     };
 
@@ -112,7 +117,7 @@ export function SubmissionModal({ isOpen, onClose, categories }: SubmissionModal
                                 >
                                     {status === 'submitting' ? 'Submitting...' : 'Submit Clip'}
                                 </GlowButton>
-                                {status === 'error' && <p className="text-red-400 text-center">Failed to submit</p>}
+                                {status === 'error' && <p className="text-red-400 text-center font-semibold">{errorMsg}</p>}
                             </form>
                         )}
                     </motion.div>

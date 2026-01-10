@@ -15,9 +15,27 @@ export async function POST(req: Request) {
         // Basic Embed Logic (Youtube only for MVP demo)
         // Convert https://www.youtube.com/watch?v=XYZ to https://www.youtube.com/embed/XYZ
         let embedUrl = url;
+        let submittedVideoId = "";
+
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-            embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            submittedVideoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop().split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${submittedVideoId}`;
+        }
+
+        // Check for duplicates across ALL categories by checking if URL *contains* the ID
+        // This handles cases where DB has "watch?v=ID" and we have "embed/ID"
+        if (submittedVideoId) {
+            const existingClip = await Category.findOne({
+                "clips.videoUrl": { $regex: submittedVideoId }
+            });
+
+            if (existingClip) {
+                return NextResponse.json({ error: "This clip has already been submitted!" }, { status: 400 });
+            }
+        } else {
+            // Fallback for non-youtube links (exact match)
+            const existingClip = await Category.findOne({ "clips.videoUrl": embedUrl });
+            if (existingClip) return NextResponse.json({ error: "Duplicate link!" }, { status: 400 });
         }
 
         const newClip = {
