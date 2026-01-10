@@ -51,7 +51,11 @@ export function HeroSection() {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[500px] bg-gradient-to-br from-surface to-black border border-white/10 rounded-[40px] shadow-2xl rotate-[-6deg] z-10" />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[500px] bg-gradient-to-br from-surface to-black border border-white/10 rounded-[40px] shadow-2xl rotate-[6deg] z-20 backdrop-blur-md" />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[500px] bg-gradient-to-br from-[#1a1a1a] to-black border border-white/10 rounded-[40px] shadow-glow z-30 flex items-center justify-center">
-                        <span className="text-6xl font-black text-white/10 rotate-90 tracking-widest">5STAR</span>
+                        <img
+                            src="/assets/loading.gif"
+                            alt="5Star Logo"
+                            className="w-48 h-48 object-contain opacity-50"
+                        />
                     </div>
                 </motion.div>
             </div>
