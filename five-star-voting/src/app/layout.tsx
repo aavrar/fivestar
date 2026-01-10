@@ -13,17 +13,18 @@ export const metadata: Metadata = {
   description: "Vote for the top streaming moments of the year.",
 };
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
+    <html lang="en" className={`${inter.variable} font-sans`}>
+      <body className="bg-black text-white antialiased">
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
