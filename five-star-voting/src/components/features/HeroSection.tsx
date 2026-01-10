@@ -54,7 +54,7 @@ export function HeroSection() {
                         <img
                             src="/assets/loading.gif"
                             alt="5Star Logo"
-                            className="w-[70%] h-auto object-contain opacity-50"
+                            className="w-[140%] h-auto object-contain opacity-50"
                         />
                     </div>
                 </motion.div>
