@@ -12,37 +12,69 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing fields" }, { status: 400 });
         }
 
-        // Basic Embed Logic (Youtube only for MVP demo)
-        // Convert https://www.youtube.com/watch?v=XYZ to https://www.youtube.com/embed/XYZ
         let embedUrl = url;
-        let submittedVideoId = "";
+        let uniqueId = ""; // Used for duplicate checking
 
+        // --- YOUTUBE ---
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            submittedVideoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop().split('?')[0];
-            embedUrl = `https://www.youtube.com/embed/${submittedVideoId}`;
+            uniqueId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop().split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${uniqueId}`;
+        }
+        // --- TWITCH ---
+        else if (url.includes('twitch.tv')) {
+            // Clip: clips.twitch.tv/Slug OR twitch.tv/User/clip/Slug
+            if (url.includes('/clip/') || url.includes('clips.twitch.tv')) {
+                uniqueId = url.split('/').pop().split('?')[0];
+                // Note: parent param is required for Twitch embeds. 
+                // We add commonly used domains + localhost.
+                embedUrl = `https://clips.twitch.tv/embed?clip=${uniqueId}&parent=localhost&parent=fivestarvoting.vercel.app&parent=www.fivestarvoting.vercel.app`;
+            }
+            // VOD: twitch.tv/videos/123
+            else if (url.includes('/videos/')) {
+                uniqueId = url.split('/videos/')[1].split('?')[0];
+                embedUrl = `https://player.twitch.tv/?video=${uniqueId}&parent=localhost&parent=fivestarvoting.vercel.app&parent=www.fivestarvoting.vercel.app`;
+            }
+        }
+        // --- TIKTOK ---
+        else if (url.includes('tiktok.com')) {
+            // https://www.tiktok.com/@user/video/7311...
+            uniqueId = url.split('/video/')[1]?.split('?')[0];
+            if (uniqueId) {
+                // Using the v2 embed endpoint
+                embedUrl = `https://www.tiktok.com/embed/v2/${uniqueId}`;
+            }
+        }
+        // --- TWITTER / X ---
+        else if (url.includes('twitter.com') || url.includes('x.com')) {
+            // https://x.com/user/status/123456...
+            uniqueId = url.split('/status/')[1]?.split('?')[0];
+            if (uniqueId) {
+                // We mark it with a prefix so frontend knows to use Tweet Component
+                embedUrl = `twitter:${uniqueId}`;
+            }
+        }
+        // --- FALLBACK ---
+        else {
+            uniqueId = url; // Full URL as ID for duplicates
         }
 
-        // Check for duplicates across ALL categories by checking if URL *contains* the ID
-        // This handles cases where DB has "watch?v=ID" and we have "embed/ID"
-        if (submittedVideoId) {
+        // Check for duplicates
+        if (uniqueId) {
+            // Check if this ID exists inside any stored videoUrl (searching for the ID part)
             const existingClip = await Category.findOne({
-                "clips.videoUrl": { $regex: submittedVideoId }
+                "clips.videoUrl": { $regex: uniqueId }
             });
 
             if (existingClip) {
                 return NextResponse.json({ error: "This clip has already been submitted!" }, { status: 400 });
             }
-        } else {
-            // Fallback for non-youtube links (exact match)
-            const existingClip = await Category.findOne({ "clips.videoUrl": embedUrl });
-            if (existingClip) return NextResponse.json({ error: "Duplicate link!" }, { status: 400 });
         }
 
         const newClip = {
             id: uuidv4(),
             title,
             videoUrl: embedUrl,
-            status: "PENDING", // If moderation enabled
+            status: "PENDING",
         };
 
         const category = await Category.findOne({ id: categoryId });

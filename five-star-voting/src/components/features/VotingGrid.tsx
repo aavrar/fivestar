@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { VoteCategory } from "@/lib/types";
 import { VoteButton } from "@/components/features/VoteButton";
+import { VideoPlayer } from "@/components/features/VideoPlayer";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface VotingGridProps {
@@ -92,12 +93,7 @@ export function VotingGrid({ categories, readOnly = false }: VotingGridProps) {
                                     )}
                                     {/* Video Container */}
                                     <div className="relative aspect-[16/9] w-full bg-black">
-                                        <iframe
-                                            src={clip.videoUrl}
-                                            title={clip.title}
-                                            className="absolute inset-0 h-full w-full border-0"
-                                            allowFullScreen
-                                        />
+                                        <VideoPlayer url={clip.videoUrl} title={clip.title} />
                                     </div>
 
                                     <div className="flex flex-1 flex-col justify-between p-5">
