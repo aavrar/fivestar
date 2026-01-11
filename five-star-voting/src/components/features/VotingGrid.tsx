@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { VoteCategory } from "@/lib/types";
 import { VoteButton } from "@/components/features/VoteButton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,10 +14,24 @@ export function VotingGrid({ categories, readOnly = false }: VotingGridProps) {
     const [activeCategoryId, setActiveCategoryId] = useState(categories[0].id);
     const activeCategory = categories.find((c) => c.id === activeCategoryId) || categories[0];
 
-    // Logic: In results phase, we might want to sort by votes desc
-    const displayClips = readOnly
-        ? [...activeCategory.clips].sort((a, b) => b.votes - a.votes)
-        : activeCategory.clips;
+    // Always sort by votes desc
+    const displayClips = [...activeCategory.clips].sort((a, b) => b.votes - a.votes);
+
+    // --- New: Voting State Control ---
+    const [votedClipId, setVotedClipId] = useState<string | null>(null);
+
+    // Load voted state for this category on mount/change
+    useEffect(() => {
+        const storageKey = `voted_category_${activeCategoryId}`;
+        const storedId = localStorage.getItem(storageKey);
+        setVotedClipId(storedId); // null if not found
+    }, [activeCategoryId]);
+
+    const handleClipVoted = (clipId: string) => {
+        setVotedClipId(clipId); // Instant UI update (disable others)
+        localStorage.setItem(`voted_category_${activeCategoryId}`, clipId);
+    };
+    // ---------------------------------
 
     return (
         <section className="container mx-auto px-6 py-20 relative z-20">
@@ -99,6 +113,9 @@ export function VotingGrid({ categories, readOnly = false }: VotingGridProps) {
                                                     initialVotes={clip.votes}
                                                     clipId={clip.id}
                                                     categoryId={activeCategory.id}
+                                                    isDisabled={!!votedClipId && votedClipId !== clip.id}
+                                                    isVoted={votedClipId === clip.id}
+                                                    onVote={() => handleClipVoted(clip.id)}
                                                 />
                                             )}
                                         </div>

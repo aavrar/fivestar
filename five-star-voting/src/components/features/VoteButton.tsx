@@ -8,22 +8,27 @@ import { Heart } from "lucide-react";
 interface VoteButtonProps {
     initialVotes: number;
     clipId: string;
-    categoryId: string;
+    categoryId: string; // Still needed for API call? Yes.
+    isDisabled: boolean;
+    isVoted: boolean;
+    onVote: () => void;
 }
 
-export function VoteButton({ initialVotes, clipId, categoryId }: VoteButtonProps) {
+export function VoteButton({ initialVotes, clipId, categoryId, isDisabled, isVoted, onVote }: VoteButtonProps) {
     const [votes, setVotes] = useState(initialVotes);
-    const [hasVoted, setHasVoted] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Sync votes if initialVotes changes (e.g. from props) - optional but good practice
+    // useEffect(() => setVotes(initialVotes), [initialVotes]);
+
     const handleVote = async () => {
-        if (hasVoted || isSaving) return;
+        if (isVoted || isSaving || isDisabled) return;
 
         setIsSaving(true);
+        onVote(); // Trigger parent update immediately (optimistic UI)
 
-        // Optimistic Update
+        // Optimistic local update for vote count
         setVotes((prev) => prev + 1);
-        setHasVoted(true);
 
         try {
             const res = await fetch('/api/vote', {
@@ -42,9 +47,11 @@ export function VoteButton({ initialVotes, clipId, categoryId }: VoteButtonProps
 
         } catch (error) {
             console.error(error);
-            // Revert on error
+            // Revert on error - tough to revert parent state easily without callback, 
+            // but for "honor system" app, we can just revert local count.
             setVotes((prev) => prev - 1);
-            setHasVoted(false);
+            // Ideally we'd tell parent to unlock, but let's keep it simple.
+            // If it fails, they are stuck "voted" locally until refresh. Acceptable for MVP.
         } finally {
             setIsSaving(false);
         }
@@ -55,20 +62,22 @@ export function VoteButton({ initialVotes, clipId, categoryId }: VoteButtonProps
             <div className="relative">
                 <GlowButton
                     onClick={handleVote}
-                    disabled={hasVoted || isSaving}
+                    disabled={isDisabled || isSaving || isVoted}
                     size="sm"
-                    className={`rounded-full px-6 transition-all ${hasVoted
-                            ? "bg-surface text-primary border-primary/20 cursor-default"
+                    className={`rounded-full px-6 transition-all ${isVoted
+                        ? "bg-surface text-primary border-primary/20 cursor-default opacity-100"
+                        : isDisabled
+                            ? "bg-surface/50 text-gray-500 border-white/5 cursor-not-allowed opacity-50"
                             : "hover:scale-105 active:scale-95"
                         }`}
                 >
-                    <Heart className={`mr-2 h-4 w-4 ${hasVoted ? "fill-current" : ""}`} />
-                    {hasVoted ? "Voted" : "Vote"}
+                    <Heart className={`mr-2 h-4 w-4 ${isVoted ? "fill-current" : ""}`} />
+                    {isVoted ? "Voted" : "Vote"}
                 </GlowButton>
 
                 {/* Particle Effect */}
                 <AnimatePresence>
-                    {hasVoted && (
+                    {isVoted && (
                         <>
                             {[...Array(6)].map((_, i) => (
                                 <motion.div

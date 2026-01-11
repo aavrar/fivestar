@@ -10,6 +10,7 @@ export default function AdminDashboard() {
 
     const [categories, setCategories] = useState<any[]>([]);
     const [editingClip, setEditingClip] = useState<any>(null);
+    const [editingCategory, setEditingCategory] = useState<any>(null);
 
     useEffect(() => {
         fetch("/api/settings")
@@ -36,7 +37,9 @@ export default function AdminDashboard() {
     }
 
     const handleDelete = async (categoryId: string, clipId: string) => {
-        if (!confirm("Are you sure you want to delete this clip?")) return;
+        const message = clipId ? "Are you sure you want to delete this clip?" : "⚠️ Are you sure you want to delete the ENTIRE category and all its clips?";
+        if (!confirm(message)) return;
+
         await fetch("/api/admin/clips", {
             method: "DELETE",
             body: JSON.stringify({ categoryId, clipId }),
@@ -56,6 +59,33 @@ export default function AdminDashboard() {
             }),
         });
         setEditingClip(null);
+        fetchClips();
+    };
+
+    const handleCategoryEditSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await fetch("/api/admin/clips", {
+            method: "PUT",
+            body: JSON.stringify({
+                categoryId: editingCategory.id,
+                title: editingCategory.title
+            }),
+        });
+        setEditingCategory(null);
+        fetchClips();
+    };
+
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+    const [newCategoryTitle, setNewCategoryTitle] = useState("");
+
+    const handleCreateCategory = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await fetch("/api/admin/clips", {
+            method: "POST",
+            body: JSON.stringify({ title: newCategoryTitle }),
+        });
+        setIsCreatingCategory(false);
+        setNewCategoryTitle("");
         fetchClips();
     };
 
@@ -95,11 +125,32 @@ export default function AdminDashboard() {
 
             {/* Clip Manager */}
             <div className="glass-panel p-8 rounded-2xl max-w-4xl">
-                <h2 className="text-xl font-semibold text-gray-400 mb-6">Manage Clips</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-semibold text-gray-400">Manage Clips</h2>
+                    <GlowButton onClick={() => setIsCreatingCategory(true)}>
+                        + Add Category
+                    </GlowButton>
+                </div>
                 <div className="space-y-8">
                     {categories.map(cat => (
                         <div key={cat.id}>
-                            <h3 className="text-white font-bold text-lg mb-4 border-b border-white/10 pb-2">{cat.title}</h3>
+                            <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                <h3 className="text-white font-bold text-lg">{cat.title}</h3>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setEditingCategory(cat)}
+                                        className="text-xs text-blue-400 hover:text-blue-300 font-medium px-3 py-1 bg-blue-500/10 rounded transition-colors"
+                                    >
+                                        Edit Title
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(cat.id, "")}
+                                        className="text-xs text-red-500 hover:text-red-400 font-medium px-3 py-1 bg-red-500/10 rounded transition-colors"
+                                    >
+                                        Delete Category
+                                    </button>
+                                </div>
+                            </div>
                             <div className="space-y-3">
                                 {cat.clips.map((clip: any) => (
                                     <div key={clip.id} className="flex items-center justify-between bg-white/5 p-4 rounded-lg">
@@ -131,7 +182,7 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Edit Modal */}
+            {/* Edit Clip Modal */}
             {editingClip && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
                     <div className="glass-panel p-8 rounded-2xl w-full max-w-md">
@@ -156,6 +207,54 @@ export default function AdminDashboard() {
                             <div className="flex gap-3 justify-end mt-6">
                                 <button type="button" onClick={() => setEditingClip(null)} className="text-gray-400">Cancel</button>
                                 <GlowButton type="submit">Save Changes</GlowButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Category Modal */}
+            {editingCategory && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                    <div className="glass-panel p-8 rounded-2xl w-full max-w-md">
+                        <h3 className="text-xl font-bold text-white mb-4">Edit Category</h3>
+                        <form onSubmit={handleCategoryEditSave} className="space-y-4">
+                            <div>
+                                <label className="text-sm text-gray-400">Category Title</label>
+                                <input
+                                    className="w-full bg-black/50 border border-white/10 rounded p-2 text-white"
+                                    value={editingCategory.title}
+                                    onChange={e => setEditingCategory({ ...editingCategory, title: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end mt-6">
+                                <button type="button" onClick={() => setEditingCategory(null)} className="text-gray-400">Cancel</button>
+                                <GlowButton type="submit">Save Changes</GlowButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Category Modal */}
+            {isCreatingCategory && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                    <div className="glass-panel p-8 rounded-2xl w-full max-w-md">
+                        <h3 className="text-xl font-bold text-white mb-4">Create New Category</h3>
+                        <form onSubmit={handleCreateCategory} className="space-y-4">
+                            <div>
+                                <label className="text-sm text-gray-400">Category Title</label>
+                                <input
+                                    className="w-full bg-black/50 border border-white/10 rounded p-2 text-white"
+                                    value={newCategoryTitle}
+                                    onChange={e => setNewCategoryTitle(e.target.value)}
+                                    placeholder="e.g. Best New Artist"
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end mt-6">
+                                <button type="button" onClick={() => setIsCreatingCategory(false)} className="text-gray-400">Cancel</button>
+                                <GlowButton type="submit">Create Category</GlowButton>
                             </div>
                         </form>
                     </div>
