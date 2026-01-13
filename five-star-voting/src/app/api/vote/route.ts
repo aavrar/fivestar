@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
 import Vote from '@/models/Vote';
 
@@ -19,6 +20,9 @@ export async function POST(req: Request) {
 
         // Get updated count
         const count = await Vote.countDocuments({ clipId });
+
+        // Revalidate home page cache
+        revalidatePath('/');
 
         return NextResponse.json({ success: true, votes: count });
     } catch (error) {

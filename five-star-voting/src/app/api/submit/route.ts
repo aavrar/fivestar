@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
 import Category from '@/models/Category';
 import { v4 as uuidv4 } from 'uuid';
@@ -58,11 +59,10 @@ export async function POST(req: Request) {
             uniqueId = url; // Full URL as ID for duplicates
         }
 
-        // Check for duplicates
+        // Check for duplicates using indexed field
         if (uniqueId) {
-            // Check if this ID exists inside any stored videoUrl (searching for the ID part)
             const existingClip = await Category.findOne({
-                "clips.videoUrl": { $regex: uniqueId }
+                "clips.uniqueVideoId": uniqueId
             });
 
             if (existingClip) {
@@ -74,6 +74,7 @@ export async function POST(req: Request) {
             id: uuidv4(),
             title,
             videoUrl: embedUrl,
+            uniqueVideoId: uniqueId || undefined,
             status: "PENDING",
         };
 
@@ -84,6 +85,9 @@ export async function POST(req: Request) {
 
         category.clips.push(newClip);
         await category.save();
+
+        // Revalidate home page cache
+        revalidatePath('/');
 
         return NextResponse.json({ success: true, clip: newClip });
 

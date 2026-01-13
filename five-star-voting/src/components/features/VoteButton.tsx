@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { GlowButton } from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
@@ -14,7 +14,7 @@ interface VoteButtonProps {
     onVote: () => void;
 }
 
-export function VoteButton({ initialVotes, clipId, categoryId, isDisabled, isVoted, onVote }: VoteButtonProps) {
+const VoteButtonComponent = ({ initialVotes, clipId, categoryId, isDisabled, isVoted, onVote }: VoteButtonProps) => {
     const [votes, setVotes] = useState(initialVotes);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -109,4 +109,14 @@ export function VoteButton({ initialVotes, clipId, categoryId, isDisabled, isVot
             </motion.span>
         </div>
     );
-}
+};
+
+export const VoteButton = memo(VoteButtonComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.initialVotes === nextProps.initialVotes &&
+        prevProps.clipId === nextProps.clipId &&
+        prevProps.categoryId === nextProps.categoryId &&
+        prevProps.isDisabled === nextProps.isDisabled &&
+        prevProps.isVoted === nextProps.isVoted
+    );
+});

@@ -6,9 +6,9 @@ import { getCategoriesWithVotes } from "@/lib/data";
 import dbConnect from "@/lib/db";
 import Settings from "@/models/Settings";
 import { Stage } from "@/models/Settings";
-import SubmissionTrigger from "@/components/features/SubmissionTrigger"; // New client wrapper
+import SubmissionTrigger from "@/components/features/SubmissionTrigger";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 async function getStage(): Promise<Stage> {
   try {
